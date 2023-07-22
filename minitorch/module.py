@@ -46,7 +46,7 @@ class Module:
         Collect all the parameters of this module and its descendents.
 
         Args:
-            start_str: string that this module and its descendents 
+            start_str: string that this module and its descendents
             should write before the name of keys
 
         Returns:
