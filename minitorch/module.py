@@ -31,13 +31,33 @@ class Module:
 
     def train(self) -> None:
         "Set the mode of this module and all descendent modules to `train`."
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError('Need to implement for Task 0.4')
+        self.training = True
+        for module in self.modules():
+            module.train()
 
     def eval(self) -> None:
         "Set the mode of this module and all descendent modules to `eval`."
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError('Need to implement for Task 0.4')
+        self.training = False
+        for module in self.modules():
+            module.eval()
+
+    def named_parameters_impl(self, start_str: str) -> Sequence[Tuple[str, Parameter]]:
+        """
+        Collect all the parameters of this module and its descendents.
+
+        Args:
+            start_str: string that this module and its descendents
+            should write before the name of keys
+
+        Returns:
+            The name and `Parameter` of each ancestor parameter.
+        """
+        ans = []
+        for param in self._parameters.items():
+            ans.append((start_str + f"{param[0]}", param[1]))
+        for module in self._modules.items():
+            ans += module[1].named_parameters_impl(start_str + f"{module[0]}.")
+        return ans
 
     def named_parameters(self) -> Sequence[Tuple[str, Parameter]]:
         """
@@ -47,13 +67,16 @@ class Module:
         Returns:
             The name and `Parameter` of each ancestor parameter.
         """
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError('Need to implement for Task 0.4')
+        return self.named_parameters_impl("")
 
     def parameters(self) -> Sequence[Parameter]:
         "Enumerate over all the parameters of this module and its descendents."
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError('Need to implement for Task 0.4')
+        ans = []
+        for param in self._parameters.values():
+            ans.append(param)
+        for module in self._modules.values():
+            ans += module.parameters()
+        return ans
 
     def add_parameter(self, k: str, v: Any) -> Parameter:
         """
