@@ -11,6 +11,7 @@ from typing import Callable, Iterable
 
 
 def turn_to_float(cond: bool) -> float:
+    "$f(x) =$ 1. if condition 'cond' is True else 0."
     return 1. if cond else 0.
 
 
@@ -66,7 +67,7 @@ def sigmoid(x: float) -> float:
 
     for stability.
     """
-    return 1. / (1. + math.exp(-x)) if x >= 0 else math.exp(x) / (1. + math.exp(x))
+    return 1. / (1. + exp(-x)) if x >= 0 else exp(x) / (1. + exp(x))
 
 
 def relu(x: float) -> float:
