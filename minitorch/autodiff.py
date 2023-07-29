@@ -61,7 +61,7 @@ def depth_first_search(variable: Variable, reversed_sort: List) -> None:
     """
     Makes the depth-first search over Variables and puts them in reversed
     topological order in `reversed_sort`.
-    
+
     Args:
         variable: variable, where we are now
         reversed_sort: List, we should write all variables in the sequence of exit from each of them.
