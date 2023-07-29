@@ -92,31 +92,25 @@ class Scalar:
         return Mul.apply(b, Inv.apply(self))
 
     def __add__(self, b: ScalarLike) -> Scalar:
-        # TODO: Implement for Task 1.2.
-        raise NotImplementedError('Need to implement for Task 1.2')
+        return Add.apply(self, b)
 
     def __bool__(self) -> bool:
         return bool(self.data)
 
     def __lt__(self, b: ScalarLike) -> Scalar:
-        # TODO: Implement for Task 1.2.
-        raise NotImplementedError('Need to implement for Task 1.2')
+        return LT.apply(self, b)
 
     def __gt__(self, b: ScalarLike) -> Scalar:
-        # TODO: Implement for Task 1.2.
-        raise NotImplementedError('Need to implement for Task 1.2')
+        return (LT.apply(self, b) - 1.) * (EQ.apply(self, b) - 1.)
 
     def __eq__(self, b: ScalarLike) -> Scalar:  # type: ignore[override]
-        # TODO: Implement for Task 1.2.
-        raise NotImplementedError('Need to implement for Task 1.2')
+        return EQ.apply(self, b)
 
     def __sub__(self, b: ScalarLike) -> Scalar:
-        # TODO: Implement for Task 1.2.
-        raise NotImplementedError('Need to implement for Task 1.2')
+        return Add.apply(self, -b)
 
     def __neg__(self) -> Scalar:
-        # TODO: Implement for Task 1.2.
-        raise NotImplementedError('Need to implement for Task 1.2')
+        return Neg.apply(self)
 
     def __radd__(self, b: ScalarLike) -> Scalar:
         return self + b
@@ -125,20 +119,19 @@ class Scalar:
         return self * b
 
     def log(self) -> Scalar:
-        # TODO: Implement for Task 1.2.
-        raise NotImplementedError('Need to implement for Task 1.2')
+        return Log.apply(self)
 
     def exp(self) -> Scalar:
-        # TODO: Implement for Task 1.2.
-        raise NotImplementedError('Need to implement for Task 1.2')
+        return Exp.apply(self)
 
     def sigmoid(self) -> Scalar:
-        # TODO: Implement for Task 1.2.
-        raise NotImplementedError('Need to implement for Task 1.2')
+        return Sigmoid.apply(self)
 
     def relu(self) -> Scalar:
-        # TODO: Implement for Task 1.2.
-        raise NotImplementedError('Need to implement for Task 1.2')
+        return ReLU.apply(self)
+
+    def __hash__(self):
+        return hash(self.unique_id)
 
     # Variable elements for backprop
 
@@ -173,8 +166,29 @@ class Scalar:
         assert h.last_fn is not None
         assert h.ctx is not None
 
-        # TODO: Implement for Task 1.3.
-        raise NotImplementedError('Need to implement for Task 1.3')
+        ans = []
+        local_derivs = h.last_fn._backward(h.ctx, d_output)
+        for var_deriv in zip(h.inputs, local_derivs):
+            if not var_deriv[0].is_constant():
+                ans.append(var_deriv)
+        return ans
+
+    def backprop_step(self, temp_derivs: dict) -> None:
+        """
+        Puts temporary derivatives into temp_derivs, using chain rule.
+
+        Args:
+            temp_derivs: Dictionary, that keeps temporary derivatives of functions,
+            if we count new derivative, we add it to previous value in dict.
+
+        Returns nothing.
+        """
+        derivs_of_parents = self.chain_rule(temp_derivs[self])
+        for var, deriv in derivs_of_parents:
+            if temp_derivs.get(var) is None:
+                temp_derivs[var] = deriv
+            else:
+                temp_derivs[var] += deriv
 
     def backward(self, d_output: Optional[float] = None) -> None:
         """
