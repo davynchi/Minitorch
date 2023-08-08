@@ -22,8 +22,11 @@ def central_difference(f: Any, *vals: Any, arg: int = 0, epsilon: float = 1e-6) 
     Returns:
         An approximation of $f'_i(x_0, \ldots, x_{n-1})$
     """
-    # TODO: Implement for Task 1.1.
-    raise NotImplementedError('Need to implement for Task 1.1')
+    val_list_minus = [val for val in vals]
+    val_list_plus = val_list_minus.copy()
+    val_list_plus[arg] += epsilon
+    val_list_minus[arg] -= epsilon
+    return (f(*val_list_plus) - f(*val_list_minus)) / (2 * epsilon)
 
 
 variable_count = 1
@@ -50,6 +53,44 @@ class Variable(Protocol):
     def chain_rule(self, d_output: Any) -> Iterable[Tuple["Variable", Any]]:
         pass
 
+    def backprop_step(self, temp_derivs: dict) -> None:
+        pass
+
+
+def depth_first_search(variable: Variable, reversed_sort: List) -> None:
+    """
+    Makes the depth-first search over Variables and puts them in reversed
+    topological order in `reversed_sort`.
+
+    Args:
+        variable: variable, where we are now
+        reversed_sort: List, we should write all variables in the sequence of exit from each of them.
+
+    Returns nothing. All depth_first_search calls should write result in reversed_sort.
+    """
+    variable.status = "visting now"
+    for parent in variable.parents:
+        if parent.status == "non-visited":
+            depth_first_search(parent, reversed_sort)
+        elif parent.status == "visting now":
+            raise AssertionError("There is at least one cycle in graph")
+    reversed_sort.append(variable)
+    variable.status = "visited"
+
+
+def initialize_statuses(variable: Variable) -> None:
+    """
+    Initialize variable.status = "non-visited" for variable and its parents/
+
+    Args:
+        variable: the start of initialization
+
+    Returns nothing.
+    """
+    variable.status = "non-visited"
+    for parent in variable.parents:
+        initialize_statuses(parent)
+
 
 def topological_sort(variable: Variable) -> Iterable[Variable]:
     """
@@ -61,8 +102,10 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
     Returns:
         Non-constant Variables in topological order starting from the right.
     """
-    # TODO: Implement for Task 1.4.
-    raise NotImplementedError('Need to implement for Task 1.4')
+    initialize_statuses(variable)
+    reversed_sort = []
+    depth_first_search(variable, reversed_sort)
+    return list(reversed(reversed_sort))
 
 
 def backpropagate(variable: Variable, deriv: Any) -> None:
@@ -76,8 +119,14 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
 
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
     """
-    # TODO: Implement for Task 1.4.
-    raise NotImplementedError('Need to implement for Task 1.4')
+    order_of_vars = topological_sort(variable)
+    temp_derivs = dict()
+    temp_derivs[variable] = deriv
+    for var in order_of_vars:
+        if var.is_leaf():
+            var.accumulate_derivative(temp_derivs[var])
+        else:
+            var.backprop_step(temp_derivs)
 
 
 @dataclass
