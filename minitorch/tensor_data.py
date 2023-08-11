@@ -42,9 +42,10 @@ def index_to_position(index: Index, strides: Strides) -> int:
     Returns:
         Position in storage
     """
-
-    # TODO: Implement for Task 2.1.
-    raise NotImplementedError('Need to implement for Task 2.1')
+    ans_pos = 0
+    for ind, stride in zip(index, strides):
+        ans_pos += ind * stride
+    return int(ans_pos)
 
 
 def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
@@ -60,8 +61,10 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
         out_index : return index corresponding to position.
 
     """
-    # TODO: Implement for Task 2.1.
-    raise NotImplementedError('Need to implement for Task 2.1')
+    residue = ordinal
+    for i in range(len(shape) - 1, -1, -1):
+        out_index[i] = residue % shape[i]
+        residue /= shape[i]
 
 
 def broadcast_index(
@@ -83,8 +86,8 @@ def broadcast_index(
     Returns:
         None
     """
-    # TODO: Implement for Task 2.2.
-    raise NotImplementedError('Need to implement for Task 2.2')
+    for i in range(len(shape)):
+        out_index[i] = 0 if shape[i] == 1 else big_index[len(big_shape) - len(shape) + i]
 
 
 def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
@@ -101,8 +104,22 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
     Raises:
         IndexingError : if cannot broadcast
     """
-    # TODO: Implement for Task 2.2.
-    raise NotImplementedError('Need to implement for Task 2.2')
+    ans = []
+    smaller_shape = shape2 if len(shape1) > len(shape2) else shape1
+    bigger_shape = shape1 if len(shape1) > len(shape2) else shape2
+    min_len = len(smaller_shape)
+    max_len = len(bigger_shape)
+
+    for i in range(max_len - min_len):
+        ans.append(bigger_shape[i])
+    for i in range(max_len - min_len, max_len):
+        smaller_pos = i - (max_len - min_len)
+        if smaller_shape[smaller_pos] != bigger_shape[i] and smaller_shape[smaller_pos] != 1 and bigger_shape[i] != 1:
+            raise IndexingError
+        else:
+            ans.append(max(smaller_shape[smaller_pos], bigger_shape[i]))
+
+    return tuple(ans)
 
 
 def strides_from_shape(shape: UserShape) -> UserStrides:
@@ -182,11 +199,11 @@ class TensorData:
             shape = (1,)
 
         # Check for errors
-        if aindex.shape[0] != len(self.shape):
-            raise IndexingError(f"Index {aindex} must be size of {self.shape}.")
+        if aindex.shape[0] != len(shape):
+            raise IndexingError(f"Index {aindex} must be size of {shape}.")
         for i, ind in enumerate(aindex):
-            if ind >= self.shape[i]:
-                raise IndexingError(f"Index {aindex} out of range {self.shape}.")
+            if ind >= shape[i]:
+                raise IndexingError(f"Index {aindex} out of range {shape}.")
             if ind < 0:
                 raise IndexingError(f"Negative indexing for {aindex} not supported.")
 
@@ -227,8 +244,9 @@ class TensorData:
             range(len(self.shape))
         ), f"Must give a position to each dimension. Shape: {self.shape} Order: {order}"
 
-        # TODO: Implement for Task 2.1.
-        raise NotImplementedError('Need to implement for Task 2.1')
+        new_shape = tuple([self.shape[int(pos)] for pos in order])
+        new_strides = tuple([self._strides[int(pos)] for pos in order])
+        return TensorData(self._storage, new_shape, new_strides)
 
     def to_string(self) -> str:
         s = ""
