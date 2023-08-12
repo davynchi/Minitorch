@@ -173,23 +173,6 @@ class Scalar:
                 ans.append(var_deriv)
         return ans
 
-    def backprop_step(self, temp_derivs: dict) -> None:
-        """
-        Puts temporary derivatives into temp_derivs, using chain rule.
-
-        Args:
-            temp_derivs: Dictionary, that keeps temporary derivatives of functions,
-            if we count new derivative, we add it to previous value in dict.
-
-        Returns nothing.
-        """
-        derivs_of_parents = self.chain_rule(temp_derivs[self])
-        for var, deriv in derivs_of_parents:
-            if temp_derivs.get(var) is None:
-                temp_derivs[var] = deriv
-            else:
-                temp_derivs[var] += deriv
-
     def backward(self, d_output: Optional[float] = None) -> None:
         """
         Calls autodiff to fill in the derivatives for the history of this object.

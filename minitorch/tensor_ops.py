@@ -264,8 +264,18 @@ def tensor_map(
         in_shape: Shape,
         in_strides: Strides,
     ) -> None:
-        # TODO: Implement for Task 2.3.
-        raise NotImplementedError('Need to implement for Task 2.3')
+        # Also iterating over np.ndindex(out_shape) could be useful...
+        out_size = int(operators.prod(out_shape))
+        for out_pos in range(out_size):
+
+            out_index = np.ndarray(len(out_shape), dtype=np.int32)
+            to_index(out_pos, out_shape, out_index)
+
+            in_index = np.ndarray(len(in_shape), dtype=np.int32)
+            broadcast_index(out_index, out_shape, in_shape, in_index)
+            in_pos = index_to_position(in_index, in_strides)
+
+            out[out_pos] = fn(in_storage[in_pos])
 
     return _map
 
@@ -309,8 +319,22 @@ def tensor_zip(
         b_shape: Shape,
         b_strides: Strides,
     ) -> None:
-        # TODO: Implement for Task 2.3.
-        raise NotImplementedError('Need to implement for Task 2.3')
+        # Also iterating over np.ndindex(out_shape) could be useful...
+        out_size = int(operators.prod(out_shape))
+        for out_pos in range(out_size):
+
+            out_index = np.ndarray(len(out_shape), dtype=np.int32)
+            to_index(out_pos, out_shape, out_index)
+
+            a_index = np.ndarray(len(a_shape), dtype=np.int32)
+            broadcast_index(out_index, out_shape, a_shape, a_index)
+            a_pos = index_to_position(a_index, a_strides)
+
+            b_index = np.ndarray(len(b_shape), dtype=np.int32)
+            broadcast_index(out_index, out_shape, b_shape, b_index)
+            b_pos = index_to_position(b_index, b_strides)
+
+            out[out_pos] = fn(a_storage[a_pos], b_storage[b_pos])
 
     return _zip
 
@@ -340,8 +364,18 @@ def tensor_reduce(
         a_strides: Strides,
         reduce_dim: int,
     ) -> None:
-        # TODO: Implement for Task 2.3.
-        raise NotImplementedError('Need to implement for Task 2.3')
+        # Also iterating over np.ndindex(out_shape) could be useful...
+        a_size = int(operators.prod(a_shape))
+        for a_pos in range(a_size):
+
+            a_index = np.ndarray(len(a_shape), dtype=np.int32)
+            to_index(a_pos, a_shape, a_index)
+
+            out_index = a_index.copy()
+            out_index[reduce_dim] = 0
+            out_pos = index_to_position(out_index, out_strides)
+
+            out[out_pos] = fn(out[out_pos], a_storage[a_pos])
 
     return _reduce
 

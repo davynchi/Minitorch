@@ -181,6 +181,9 @@ class Tensor:
     def __rmul__(self, b: TensorLike) -> Tensor:
         return self * b
 
+    def __hash__(self):
+        return hash(self.unique_id)
+
     def all(self, dim: Optional[int] = None) -> Tensor:
         if dim is None:
             return All.apply(self.view(self.size), self._ensure_tensor(0))

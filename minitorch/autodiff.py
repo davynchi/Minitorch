@@ -53,9 +53,6 @@ class Variable(Protocol):
     def chain_rule(self, d_output: Any) -> Iterable[Tuple["Variable", Any]]:
         pass
 
-    def backprop_step(self, temp_derivs: dict) -> None:
-        pass
-
 
 def depth_first_search(variable: Variable, reversed_sort: List) -> None:
     """
@@ -69,11 +66,12 @@ def depth_first_search(variable: Variable, reversed_sort: List) -> None:
     Returns nothing. All depth_first_search calls should write result in reversed_sort.
     """
     variable.status = "visting now"
-    for parent in variable.parents:
-        if parent.status == "non-visited":
-            depth_first_search(parent, reversed_sort)
-        elif parent.status == "visting now":
-            raise AssertionError("There is at least one cycle in graph")
+    if not variable.is_constant():
+        for parent in variable.parents:
+            if parent.status == "non-visited":
+                depth_first_search(parent, reversed_sort)
+            elif parent.status == "visting now":
+                raise AssertionError("There is at least one cycle in graph")
     reversed_sort.append(variable)
     variable.status = "visited"
 
@@ -88,8 +86,9 @@ def initialize_statuses(variable: Variable) -> None:
     Returns nothing.
     """
     variable.status = "non-visited"
-    for parent in variable.parents:
-        initialize_statuses(parent)
+    if not variable.is_constant():
+        for parent in variable.parents:
+            initialize_statuses(parent)
 
 
 def topological_sort(variable: Variable) -> Iterable[Variable]:
@@ -125,8 +124,13 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
     for var in order_of_vars:
         if var.is_leaf():
             var.accumulate_derivative(temp_derivs[var])
-        else:
-            var.backprop_step(temp_derivs)
+        elif not var.is_constant():
+            derivs_of_parents = var.chain_rule(temp_derivs[var])
+            for par, deriv in derivs_of_parents:
+                if temp_derivs.get(par) is None:
+                    temp_derivs[par] = deriv
+                else:
+                    temp_derivs[par] += deriv
 
 
 @dataclass
