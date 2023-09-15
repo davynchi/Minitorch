@@ -2,8 +2,11 @@ from mnist import MNIST
 
 import minitorch
 
+# ~/Minitorch/sd23-fw-davynchi/
 mndata = MNIST("project/data/")
 images, labels = mndata.load_training()
+# from keras.datasets import mnist
+# (images, labels), (_, _) = mnist.load_data()
 
 BACKEND = minitorch.TensorBackend(minitorch.FastOps)
 BATCH = 16

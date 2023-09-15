@@ -159,8 +159,23 @@ def tensor_map(
         in_shape: Shape,
         in_strides: Strides,
     ) -> None:
-        # TODO: Implement for Task 3.1.
-        raise NotImplementedError('Need to implement for Task 3.1')
+        out_size = len(out)
+        if len(out_shape) == len(in_shape)\
+                and np.all(out_shape == in_shape)\
+                and np.all(out_strides == in_strides):
+            for pos in prange(out_size):
+                out[pos] = fn(in_storage[pos])
+        else:
+            for out_pos in prange(out_size):
+
+                out_index = np.empty(len(out_shape), dtype=np.int32)
+                to_index(out_pos, out_shape, out_index)
+
+                in_index = np.empty(len(in_shape), dtype=np.int32)
+                broadcast_index(out_index, out_shape, in_shape, in_index)
+                in_pos = index_to_position(in_index, in_strides)
+
+                out[out_pos] = fn(in_storage[in_pos])
 
     return njit(parallel=True)(_map)  # type: ignore
 
@@ -198,8 +213,27 @@ def tensor_zip(
         b_shape: Shape,
         b_strides: Strides,
     ) -> None:
-        # TODO: Implement for Task 3.1.
-        raise NotImplementedError('Need to implement for Task 3.1')
+        out_size = len(out)
+        if len(out_shape) == len(a_shape) and len(out_shape) == len(b_shape)\
+                and np.all(out_shape == a_shape) and np.all(out_shape == b_shape)\
+                and np.all(out_strides == a_strides) and np.all(out_strides == b_strides):
+            for pos in prange(out_size):
+                out[pos] = fn(a_storage[pos], b_storage[pos])
+        else:
+            for out_pos in prange(out_size):
+
+                out_index = np.empty(len(out_shape), dtype=np.int32)
+                to_index(out_pos, out_shape, out_index)
+
+                a_index = np.empty(len(a_shape), dtype=np.int32)
+                broadcast_index(out_index, out_shape, a_shape, a_index)
+                a_pos = index_to_position(a_index, a_strides)
+
+                b_index = np.empty(len(b_shape), dtype=np.int32)
+                broadcast_index(out_index, out_shape, b_shape, b_index)
+                b_pos = index_to_position(b_index, b_strides)
+
+                out[out_pos] = fn(a_storage[a_pos], b_storage[b_pos])
 
     return njit(parallel=True)(_zip)  # type: ignore
 
@@ -232,8 +266,16 @@ def tensor_reduce(
         a_strides: Strides,
         reduce_dim: int,
     ) -> None:
-        # TODO: Implement for Task 3.1.
-        raise NotImplementedError('Need to implement for Task 3.1')
+        out_size = len(out)
+        for out_pos in prange(out_size):
+            out_index = np.empty(len(out_shape), dtype=np.int32)
+            to_index(out_pos, out_shape, out_index)
+
+            a_pos_start = index_to_position(out_index, a_strides)
+            a_dim_stride = a_strides[reduce_dim]
+            a_dim_shape = a_shape[reduce_dim]
+            for a_pos in range(a_pos_start, a_pos_start + a_dim_shape * a_dim_stride, a_dim_stride):
+                out[out_pos] = fn(out[out_pos], a_storage[a_pos])
 
     return njit(parallel=True)(_reduce)  # type: ignore
 
@@ -282,8 +324,17 @@ def _tensor_matrix_multiply(
     a_batch_stride = a_strides[0] if a_shape[0] > 1 else 0
     b_batch_stride = b_strides[0] if b_shape[0] > 1 else 0
 
-    # TODO: Implement for Task 3.2.
-    raise NotImplementedError('Need to implement for Task 3.2')
+    out_size = len(out)
+    shape_to_reduce = a_shape[-1]
+    for out_pos in prange(out_size):
+        out_ind2 = out_pos % out_shape[2]
+        out_ind1 = out_pos // out_shape[2] % out_shape[1]
+        out_ind0 = out_pos // out_shape[2] // out_shape[1] % out_shape[0]
+        for reduce_pos in range(shape_to_reduce):
+            out[out_pos] += \
+                a_storage[a_batch_stride * out_ind0 + a_strides[-2] * out_ind1 + a_strides[-1] * reduce_pos]\
+                * b_storage[b_batch_stride * out_ind0 + b_strides[-2] * reduce_pos + b_strides[-1] * out_ind2]
 
 
 tensor_matrix_multiply = njit(parallel=True, fastmath=True)(_tensor_matrix_multiply)
+# tensor_matrix_multiply = _tensor_matrix_multiply

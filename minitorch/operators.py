@@ -37,12 +37,12 @@ def neg(x: float) -> float:
 
 def lt(x: float, y: float) -> float:
     "$f(x) =$ 1.0 if x is less than y else 0.0"
-    return turn_to_float(x < y)
+    return 1. if x < y else 0.
 
 
 def eq(x: float, y: float) -> float:
     "$f(x) =$ 1.0 if x is equal to y else 0.0"
-    return turn_to_float(x == y)
+    return 1. if x == y else 0.
 
 
 def max(x: float, y: float) -> float:
@@ -52,7 +52,7 @@ def max(x: float, y: float) -> float:
 
 def is_close(x: float, y: float) -> float:
     "$f(x) = |x - y| < 1e-2$"
-    return turn_to_float(math.fabs(x - y) < 1e-2)
+    return 1. if math.fabs(x - y) < 1e-2 else 0.
 
 
 def sigmoid(x: float) -> float:
@@ -67,7 +67,7 @@ def sigmoid(x: float) -> float:
 
     for stability.
     """
-    return 1. / (1. + exp(-x)) if x >= 0 else exp(x) / (1. + exp(x))
+    return 1. / (1. + math.exp(-x)) if x >= 0 else math.exp(x) / (1. + math.exp(x))
 
 
 def relu(x: float) -> float:
@@ -109,7 +109,7 @@ def inv_back(x: float, d: float) -> float:
 
 def relu_back(x: float, d: float) -> float:
     r"If $f = relu$ compute $d \times f'(x)$"
-    return d * lt(0., x)
+    return d * (1. if 0. < x else 0.)
 
 
 # ## Task 0.3

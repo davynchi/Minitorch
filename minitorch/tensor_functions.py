@@ -119,7 +119,7 @@ class Sigmoid(Function):
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         (sigm,) = ctx.saved_values
         funcs = grad_output.f
-        one_minus_sigm = funcs.add_zip(tensor(1), funcs.neg_map(sigm))
+        one_minus_sigm = funcs.add_zip(tensor([1]), funcs.neg_map(sigm))
         return funcs.mul_zip(funcs.mul_zip(sigm, one_minus_sigm), grad_output)
 
 
@@ -157,7 +157,7 @@ class Exp(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         (exp,) = ctx.saved_values
-        return exp
+        return grad_output.f.mul_zip(exp, grad_output)
 
 
 class Sum(Function):
@@ -215,12 +215,10 @@ class Permute(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, order: Tensor) -> Tensor:
         ctx.save_for_backward(a.shape)
-        print(order.to_numpy())
         return minitorch.Tensor(a._tensor.permute(*order.to_numpy()), backend=a.backend)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
-        print("grad", grad_output)
         (a_shape,) = ctx.saved_values
         return (
             minitorch.Tensor.make(
@@ -425,7 +423,7 @@ Received derivative %f for argument %d and index %s,
 but was expecting derivative %f from central difference.
 
 """
-
+    print("OUT", out)
     for i, x in enumerate(vals):
         ind = x._tensor.sample()
         check = grad_central_difference(f, *vals, arg=i, ind=ind)

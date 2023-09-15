@@ -80,8 +80,21 @@ def _tensor_conv1d(
     s1 = input_strides
     s2 = weight_strides
 
-    # TODO: Implement for Task 4.1.
-    raise NotImplementedError('Need to implement for Task 4.1')
+    for out_pos in prange(out_size):
+        out[out_pos] = 0.
+        out_index = np.empty(len(out_shape), dtype=np.int32)
+        to_index(out_pos, out_shape, out_index)
+        input_batch_pos = out_index[0]
+        input_start_pos = out_index[2]
+        weight_out_channel_pos = out_index[1]
+        for channel in range(in_channels):
+            for bias in range(kw):
+                if not reverse and input_start_pos + bias >= width or reverse and input_start_pos - bias < 0:
+                    continue
+                final_input_start_pos = input_start_pos + bias if not reverse else input_start_pos - bias
+                input_pos = input_batch_pos * s1[0] + channel * s1[1] + final_input_start_pos * s1[2]
+                weight_pos = weight_out_channel_pos * s2[0] + channel * s2[1] + bias * s2[2]
+                out[out_pos] += input[input_pos] * weight[weight_pos]
 
 
 tensor_conv1d = njit(parallel=True)(_tensor_conv1d)
@@ -206,8 +219,27 @@ def _tensor_conv2d(
     s10, s11, s12, s13 = s1[0], s1[1], s1[2], s1[3]
     s20, s21, s22, s23 = s2[0], s2[1], s2[2], s2[3]
 
-    # TODO: Implement for Task 4.2.
-    raise NotImplementedError('Need to implement for Task 4.2')
+    for out_pos in prange(out_size):
+        out[out_pos] = 0.
+        out_index = np.empty(len(out_shape), dtype=np.int32)
+        to_index(out_pos, out_shape, out_index)
+        input_batch_pos = out_index[0]
+        input_height_pos = out_index[2]
+        input_width_pos = out_index[3]
+        weight_out_channel_pos = out_index[1]
+        for channel in range(in_channels):
+            for height_bias in range(kh):
+                for width_bias in range(kw):
+                    if not reverse and (input_height_pos + height_bias >= height or input_width_pos + width_bias >= width)\
+                       or reverse and (input_height_pos - height_bias < 0 or input_width_pos - width_bias < 0):
+                        continue
+                    final_input_height_pos = input_height_pos - height_bias if reverse else input_height_pos + height_bias
+                    final_input_width_pos = input_width_pos - width_bias if reverse else input_width_pos + width_bias
+                    input_pos = input_batch_pos * s10 + channel * s11 + final_input_height_pos * s12 + final_input_width_pos * s13
+
+                    weight_pos = weight_out_channel_pos * s20 + channel * s21 + height_bias * s22 + width_bias * s23
+
+                    out[out_pos] += input[input_pos] * weight[weight_pos]
 
 
 tensor_conv2d = njit(parallel=True, fastmath=True)(_tensor_conv2d)

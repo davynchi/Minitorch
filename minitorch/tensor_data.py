@@ -45,7 +45,7 @@ def index_to_position(index: Index, strides: Strides) -> int:
     ans_pos = 0
     for ind, stride in zip(index, strides):
         ans_pos += ind * stride
-    return int(ans_pos)
+    return ans_pos
 
 
 def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
@@ -61,10 +61,10 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
         out_index : return index corresponding to position.
 
     """
-    residue = ordinal
-    for i in range(len(shape) - 1, -1, -1):
+    residue = ordinal + 0
+    for i in np.arange(len(shape) - 1, -1, -1):
         out_index[i] = residue % shape[i]
-        residue /= shape[i]
+        residue //= shape[i]
 
 
 def broadcast_index(

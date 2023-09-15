@@ -44,3 +44,13 @@
 ![alt text](images/part_2/Circle/ABBYY_DL_minitorch_2_5_circle_model.png)
 ![alt text](images/part_2/Circle/ABBYY_DL_minitorch_2_5_circle_picture.png)
 ![alt text](images/part_2/Circle/ABBYY_DL_minitorch_2_5_circle_logs.png)
+
+# Task_3 without CUDA and task_4
+## Mnist
+![alt text](images/part_4/mnist/ABBYY_DL_minitorch_4_5_mnist_model.png)
+![alt text](images/part_4/mnist/ABBYY_DL_minitorch_4_5_mnist_logs_picture.png)
+![alt text](images/part_4/mnist/ABBYY_DL_minitorch_4_5_mnist_logs.png)
+## Sentiment
+![alt text](images/part_4/sentiment/ABBYY_DL_minitorch_4_5_sentiment_model.png)
+![alt text](images/part_4/sentiment/ABBYY_DL_minitorch_4_5_sentiment_logs_picture.png)
+![alt text](images/part_4/sentiment/ABBYY_DL_minitorch_4_5_sentiment_logs_numbers.png)
